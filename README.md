@@ -12,6 +12,17 @@ Simulating **Pokémon team battles** with a **custom, lightweight battle model**
 
 ---
 
+## Clone this repo
+
+```bash
+git clone https://github.com/popshuv/pokemon-showdown-ea.git
+cd pokemon-showdown-ea
+```
+
+Then use the commands below from the project root.
+
+---
+
 ## Quick start
 
 From the **root of this repository** (`pokemon-showdown-ea/`):
