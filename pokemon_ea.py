@@ -267,7 +267,7 @@ def eff_spe(p: dict) -> float:
     return _eff_stat(p["spe"], p["spe_st"], penalty)
 
 # ──────────────────────────────────────────────────────────────
-# MOVE SELECTION HEURISTIC (ported from teamFromGenome6.mjs)
+# MOVE SELECTION HEURISTIC
 # ──────────────────────────────────────────────────────────────
 
 def _sum_exponents(attack_type: str, defender_types: list[str]) -> int:
@@ -861,7 +861,7 @@ def print_history(history: dict) -> None:
 
 if __name__ == "__main__":
     # Reproducible seed – remove or change for stochastic runs
-    random.seed(42)
+    random.seed(100)
 
     # ── Run the EA ────────────────────────────────────────────
     best_genome, best_fitness, history = run_ea(
@@ -869,8 +869,8 @@ if __name__ == "__main__":
         n_offspring       = 20,
         n_generations     = 30,
         tournament_size   = 3,
-        mutation_prob     = 0.50,
-        n_opponents       = 8,
+        mutation_prob     = 0.75,
+        n_opponents       = 6,
         n_battles_per_opp = 3,
         verbose           = True,
     )
