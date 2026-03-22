@@ -291,7 +291,7 @@ def _best_move_eff(move_type: str, opp_ids: list[str]) -> tuple[int, int]:
 
 def select_moves(species_id: str, opp_ids: list[str]) -> list[str]:
     """
-    Deterministic heuristic move selection (mirrors JS teamFromGenome6.mjs).
+    Deterministic heuristic move selection.
     Prefers moves super-effective vs. opponent types; diversifies move types.
     """
     data  = constraints[species_id]
