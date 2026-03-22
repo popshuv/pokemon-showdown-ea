@@ -1,0 +1,11 @@
+{
+  "sleeppowder": "sleep",
+  "spore": "sleep",
+  "sing": "sleep",
+  "lovelykiss": "sleep",
+  "hypnosis": "sleep",
+  "stunspore": "paralyze",
+  "thunderwave": "paralyze",
+  "glare": "paralyze",
+  "confuseray": "confuse"
+}

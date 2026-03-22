@@ -1,0 +1,46 @@
+{
+  "bodyslam": [
+    "paralyze",
+    0.3
+  ],
+  "thunderbolt": [
+    "paralyze",
+    0.1
+  ],
+  "thunder": [
+    "paralyze",
+    0.1
+  ],
+  "blizzard": [
+    "freeze",
+    0.1
+  ],
+  "icebeam": [
+    "freeze",
+    0.1
+  ],
+  "fireblast": [
+    "burn",
+    0.3
+  ],
+  "flamethrower": [
+    "burn",
+    0.1
+  ],
+  "sludge": [
+    "poison",
+    0.4
+  ],
+  "twineedle": [
+    "poison",
+    0.2
+  ],
+  "stomp": [
+    "flinch",
+    0.3
+  ],
+  "rockslide": [
+    "flinch",
+    0.3
+  ]
+}
