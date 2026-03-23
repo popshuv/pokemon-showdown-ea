@@ -63,7 +63,7 @@ def mutate_scramble(genome: list[str]) -> list[str]:
     i, j = sorted(random.sample(range(len(g)), 2)
 
     # Extract and shuffle the subsequence
-    g[i: j + 1],
+    subset = g[i: j + 1]
     random.shuffle(subset)
 
     # Place it back 
