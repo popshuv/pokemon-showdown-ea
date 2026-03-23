@@ -52,14 +52,23 @@ def coeval_fitness(
 # EVOLUTIONARY OPERATORS
 # ──────────────────────────────────────────────────────────────
 
-def mutate_swap(genome: list[str]) -> list[str]:
+def mutate_scramble(genome: list[str]) -> list[str]:
     """
-    Mutation: swap positions of two randomly chosen Pokémon in the team.
-    This is the canonical mutation operator for permutation representations.
+    Mutation: randomly shuffle a subsequence of the genome. To perserve
+    permutation validity. 
     """
     g = genome.copy()
-    i, j = random.sample(range(len(g)), 2)
-    g[i], g[j] = g[j], g[i]
+
+    # Pick two indices
+    i, j = sorted(random.sample(range(len(g)), 2)
+
+    # Extract and shuffle the subsequence
+    g[i: j + 1],
+    random.shuffle(subset)
+
+    # Place it back 
+    g[i: j + 1 ] = subset
+    
     return g
 
 
