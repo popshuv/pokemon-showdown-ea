@@ -17,7 +17,7 @@ So the EA is mainly searching **which six species** and **in which lead / order*
 
 ---
 
-## Evolutionary algorithm (brief)
+## Evolutionary algorithm concepts
 
 Evolutionary algorithms maintain a **population** of candidate solutions and improve them over **generations** using **selection**, **recombination (crossover)**, and **mutation**, guided by a **fitness** function.
 
