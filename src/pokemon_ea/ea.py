@@ -2,12 +2,15 @@
 
 import random
 
-from . import battle, data, move_selection, pokemon
+from . import battle, data, move_selection, pokemon, report
 
 
 def genome_to_team(genome: list[str], opp_genome: list[str]) -> list[dict]:
     """Convert a list of 6 species IDs into a ready-to-battle team."""
-    return [build_pokemon(sid, select_moves(sid, opp_genome)) for sid in genome]
+    return [
+        pokemon.build_pokemon(sid, move_selection.select_moves(sid, opp_genome))
+        for sid in genome
+    ]
 
 
 def coeval_fitness(
@@ -37,7 +40,7 @@ def coeval_fitness(
         opp_team = genome_to_team(opp_genome, genome)
 
         for _ in range(n_battles):
-            won, hpr = simulate_battle(team, opp_team)
+            won, hpr = battle.simulate_battle(team, opp_team)
             if won:
                 wins += 1
             total_hp_ratio += hpr
@@ -60,16 +63,20 @@ def mutate_scramble(genome: list[str]) -> list[str]:
     g = genome.copy()
 
     # Pick two indices
-    i, j = sorted(random.sample(range(len(g)), 2)
+    i, j = sorted(random.sample(range(len(g)), 2))
 
     # Extract and shuffle the subsequence
     subset = g[i: j + 1]
     random.shuffle(subset)
 
     # Place it back 
-    g[i: j + 1 ] = subset
+    g[i: j + 1] = subset
     
     return g
+
+
+# Back-compat name expected by __init__.py and older callers.
+mutate_swap = mutate_scramble
 
 
 def crossfill(p1: list[str], p2: list[str]) -> tuple[list[str], list[str]]:
@@ -161,8 +168,8 @@ def run_coevolution(
     _print(f"{'='*60}\n")
 
     # ── Initialise both populations ───────────────────────────
-    red  = [random.sample(ALL_SPECIES, 6) for _ in range(pop_size)]
-    blue = [random.sample(ALL_SPECIES, 6) for _ in range(pop_size)]
+    red  = [random.sample(data.ALL_SPECIES, 6) for _ in range(pop_size)]
+    blue = [random.sample(data.ALL_SPECIES, 6) for _ in range(pop_size)]
 
     # ── Fitness helpers ───────────────────────────────────────
     def _eval_red(red_pop, blue_pool):
@@ -208,7 +215,7 @@ def run_coevolution(
         "avg":  [sum(red_fits) / len(red_fits)],
     }
 
-    team_str = ", ".join(species_names.get(s, s) for s in best_genome)
+    team_str = ", ".join(data.species_names.get(s, s) for s in best_genome)
     _print(f"Gen  0 | best={best_fitness:.4f}  avg={history['avg'][0]:.4f}  | {team_str}")
 
     # ── Main loop ─────────────────────────────────────────────
@@ -236,60 +243,48 @@ def run_coevolution(
         history["best"].append(red_fits[0])
         history["avg"].append(gen_avg)
 
-        team_str = ", ".join(species_names.get(s, s) for s in red[0])
+        team_str = ", ".join(data.species_names.get(s, s) for s in red[0])
         _print(f"Gen {gen:2d} | best={red_fits[0]:.4f}  avg={gen_avg:.4f}  | {team_str}")
 
     return best_genome, best_fitness, history
 
 
-# ──────────────────────────────────────────────────────────────
-# REPORT HELPERS
-# ──────────────────────────────────────────────────────────────
-
-def print_team(genome: list[str], header: str = "Team") -> None:
-    """Pretty-print a team with selected moves."""
-    sample_opp = random.sample(ALL_SPECIES, 6)
-    print(f"\n{header}")
-    print("-" * 50)
-    for rank, sid in enumerate(genome, 1):
-        name  = species_names.get(sid, sid)
-        types = "/".join(species_types.get(sid, ["?"]))
-        moves = select_moves(sid, sample_opp)
-        level = constraints[sid].get("level", 100)
-        atk_b, def_b, spe_b, spc_b = BASE_STATS.get(sid, (75, 75, 75, 75))
-        bhp   = species_base_hp[sid]
-        mv_str = "  |  ".join(m for m in moves)
-        print(f"  {rank}. {name:<14} Lv{level:<3}  [{types:<16}]")
-        print(f"     Moves: {mv_str}")
-        print(f"     Base stats — HP:{bhp}  Atk:{atk_b}  Def:{def_b}  "
-              f"Spe:{spe_b}  Spc:{spc_b}")
+evaluate_fitness = coeval_fitness
 
 
-def print_history(history: dict) -> None:
-    """Print a generation-by-generation fitness chart."""
-    print("\nFitness History (Red population)")
-    print("-" * 60)
-    max_val   = max(history["best"]) if history["best"] else 2.0
-    bar_width = 30
-    for i, (b, a) in enumerate(zip(history["best"], history["avg"])):
-        bar_len = int(b / max(max_val, 0.01) * bar_width)
-        bar = "█" * bar_len + "░" * (bar_width - bar_len)
-        print(f"  Gen {i:2d}: {b:.4f} [{bar}]  avg={a:.4f}")
-
-
-# ──────────────────────────────────────────────────────────────
+def run_ea(
+    pop_size: int = 20,
+    n_offspring: int = 20,
+    n_generations: int = 30,
+    tournament_size: int = 3,
+    mutation_prob: float = 0.5,
+    n_opponents: int = 10,
+    n_battles_per_opp: int = 3,
+    verbose: bool = True,
+) -> tuple[list[str], float, dict]:
+    """Compatibility wrapper for the original single-population API name."""
+    return run_coevolution(
+        pop_size=pop_size,
+        n_offspring=n_offspring,
+        n_generations=n_generations,
+        tournament_size=tournament_size,
+        mutation_prob=mutation_prob,
+        n_opponents=n_opponents,
+        n_battles=n_battles_per_opp,
+        verbose=verbose,
+    )
 
 if __name__ == "__main__":
     random.seed(100)
 
-    best_genome, best_fitness, history = run_coevolution(
+    best_genome, best_fitness, history = run_ea(
         pop_size        = 20,
         n_offspring     = 20,
         n_generations   = 30,
         tournament_size = 3,
         mutation_prob   = 0.75,
         n_opponents     = 6,
-        n_battles       = 3,
+        n_battles_per_opp = 3,
         verbose         = True,
     )
 
@@ -298,5 +293,5 @@ if __name__ == "__main__":
     print(f"  Best fitness achieved: {best_fitness:.4f}  (max ≈ 2.0)")
     print(f"{'='*60}")
 
-    print_team(best_genome, "BEST TEAM")
-    print_history(history)
+    report.print_team(best_genome, "BEST TEAM")
+    report.print_history(history)

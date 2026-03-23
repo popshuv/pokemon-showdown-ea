@@ -353,9 +353,18 @@ def choose_switch_in(team: list[dict], opp: dict | None) -> int | None:
     cand = [j for j in range(len(team)) if not team[j]["fainted"]]
     if not cand:
         return None
-    if opp is None:
-        return max(cand, key=lambda j: _stat_total(team[j]))
-    return max(cand, key=lambda j: _switch_sort_key(team[j], opp))
+    # Intelligent switching disabled: use deterministic, roster-order switching.
+    return min(cand)
+
+
+def _next_unfainted_from_index(team: list[dict], current_i: int) -> int | None:
+    for j in range(current_i + 1, len(team)):
+        if not team[j]["fainted"]:
+            return j
+    for j in range(0, current_i + 1):
+        if not team[j]["fainted"]:
+            return j
+    return None
 
 
 def simulate_battle(team1: list[dict], team2: list[dict]) -> tuple[bool, float]:
@@ -366,15 +375,13 @@ def simulate_battle(team1: list[dict], team2: list[dict]) -> tuple[bool, float]:
     MAX_TURNS = 300
 
     for _ in range(MAX_TURNS):
-        ref2 = _opp_reference_for_switch(t2, i2)
         if i1 < len(t1) and t1[i1]["fainted"]:
-            n = choose_switch_in(t1, ref2)
+            n = _next_unfainted_from_index(t1, i1)
             if n is None:
                 break
             i1 = n
-        ref1 = _opp_reference_for_switch(t1, i1)
         if i2 < len(t2) and t2[i2]["fainted"]:
-            n = choose_switch_in(t2, ref1)
+            n = _next_unfainted_from_index(t2, i2)
             if n is None:
                 break
             i2 = n
