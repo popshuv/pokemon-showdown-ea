@@ -66,28 +66,33 @@ Game data is loaded from `data/` at the **repository root** (paths are resolved 
 
 ## How to run
 
-From the **`src`** directory (so Python can import the `pokemon_ea` package):
+**From the repository root** (simplest):
 
 ```bash
-cd src
-python -m pokemon_ea
+python run.py
 ```
 
-This runs the demo in `pokemon_ea/__main__.py`: fixed RNG seed, then `run_ea(...)` with the parameters set there, and prints the best team plus a simple fitness history chart.
+`run.py` adds `src/` to the module path and runs the same entry as `python -m pokemon_ea`.
 
-Alternatively, from the **repository root**, put `src` on `PYTHONPATH` (e.g. `set PYTHONPATH=src` on Windows CMD, or `$env:PYTHONPATH="src"` in PowerShell) and run `python -m pokemon_ea`.
+Other options:
+
+- **`cd src`** then **`python -m pokemon_ea`** (package directory on `sys.path`).
+- **Editable install** (once): from the repo root run **`pip install -e .`** so `python -m pokemon_ea` works from any working directory.
+- **Manual `PYTHONPATH`**: e.g. PowerShell **`$env:PYTHONPATH="src"`** then **`python -m pokemon_ea`** from the repo root.
+
+The demo uses the parameters in `pokemon_ea/__main__.py` and prints the full report from `pokemon_ea/report.py`.
 
 ### Use as a module
 
 With `src` on the module search path (e.g. `cd src`):
 
 ```bash
-python -c "import pokemon_ea as pe; print(pe.run_ea(pop_size=10, n_generations=5, verbose=False))"
+python -c "import pokemon_ea as pe; print(pe.run_coevolution(pop_size=10, n_generations=5))"
 ```
 
-Adjust `run_ea` arguments in code or call it from your own script; see `run_ea` in `src/pokemon_ea/ea.py` for parameters.
+Adjust `run_coevolution` arguments in code or call it from your own script; see `run_coevolution` in `src/pokemon_ea/ea.py` for parameters.
 
-### Main tuning knobs (`run_ea`)
+### Main tuning knobs (`run_coevolution`)
 
 | Parameter | Role |
 |-----------|------|
@@ -97,7 +102,7 @@ Adjust `run_ea` arguments in code or call it from your own script; see `run_ea` 
 | `tournament_size` | Parent selection pressure |
 | `mutation_prob` | Chance each child gets a swap mutation |
 | `n_opponents` | Random opponent teams per fitness evaluation |
-| `n_battles_per_opp` | Repeats per opponent (reduces RNG variance) |
+| `n_battles` | Repeats per opponent (reduces RNG variance) |
 
 ---
 
