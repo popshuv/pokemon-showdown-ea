@@ -19,7 +19,7 @@ def main() -> None:
     best_genome, best_fitness, history = run_coevolution(
         pop_size=30,
         n_offspring=20,
-        n_generations=20,
+        n_generations=30,
         tournament_size=3,
         mutation_prob=0.75,
         n_opponents=8,
