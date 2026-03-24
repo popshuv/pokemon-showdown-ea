@@ -74,10 +74,6 @@ def mutate_scramble(genome: list[str]) -> list[str]:
     return g
 
 
-# Back-compat name expected by __init__.py and older callers.
-mutate_swap = mutate_scramble
-
-
 def crossfill(p1: list[str], p2: list[str]) -> tuple[list[str], list[str]]:
     """
     Cut-and-Crossfill recombination (order-preserving).
@@ -184,9 +180,9 @@ def run_coevolution(
             p2 = tournament_select(pop, fits, tournament_size)
             c1, c2 = crossfill(p1, p2)
             if random.random() < mutation_prob:
-                c1 = mutate_swap(c1)
+                c1 = mutate_scramble(c1)
             if random.random() < mutation_prob:
-                c2 = mutate_swap(c2)
+                c2 = mutate_scramble(c2)
             children.append(c1)
             if len(children) < n_offspring:
                 children.append(c2)

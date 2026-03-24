@@ -26,7 +26,7 @@ The EA searches **which six species** and **in which lead/order** perform best *
 | **Fitness** | How good a solution is | Win rate + mean HP ratio vs. opponents sampled from the other population |
 | **Selection** | Choose parents for breeding | **Tournament selection** (pick best of *k* random individuals) |
 | **Crossover** | Combine two parents into children | **Cut-and-crossfill** (`crossfill`): order-preserving; fills the rest from the other parent without duplicates |
-| **Mutation** | Small random change | **Shuffle a random contiguous subsequence** of the team (`mutate_scramble`; also exported as `mutate_swap`) |
+| **Mutation** | Small random change | **Shuffle a random contiguous subsequence** of the team (`mutate_scramble`) |
 | **Survival** | Who goes to the next generation | **(μ + λ)** per side: merge parents + offspring, sort by fitness, keep the top **μ** (`pop_size`) |
 
 Each generation, **λ** children are produced **per population** from tournament-selected parents; each child may be mutated with probability **`mutation_prob`**. The run returns the **best Red** genome and fitness; Blue is used only as selection pressure.
@@ -107,4 +107,4 @@ Adjust `run_coevolution` in code or call it from your own script — see `run_co
 - **No manual switching** — battles are a 1v1 ladder until one team is wiped. The **lead** is slot 0 in team order. After a faint, the next Pokémon is the next unfainted slot in list order (wrapping to the start), not a free switch by type.
 - **Moves** are chosen by a **deterministic heuristic**, not by a full human or Showdown AI.
 - **Data scope** is whatever is in the JSON files (Gen 1–oriented species and moves in this repo).
-- **Mutation** only interacts with the configuration of the team, and does not introduce new alleles into the genotype. Could/should be changed to another mutation operator
+- **Mutation** only reorders species already in the team; it does not introduce new species into the genome. A different operator could add or replace alleles if you want search beyond permutations.

@@ -25,7 +25,7 @@ from .ea import (
     crossfill,
     evaluate_fitness,
     genome_to_team,
-    mutate_swap,
+    mutate_scramble,
     run_coevolution,
     tournament_select,
 )
@@ -53,7 +53,7 @@ __all__ = [
     "genome_to_team",
     "move_categories",
     "move_types",
-    "mutate_swap",
+    "mutate_scramble",
     "pick_move",
     "print_history",
     "print_team",
