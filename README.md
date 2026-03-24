@@ -103,7 +103,7 @@ Adjust `run_coevolution` in code or call it from your own script — see `run_co
 ## Limitations
 
 - **Not the Showdown server** — mechanics are approximated (status, damage, priority, etc.). Do not expect bit-for-bit parity with [smogon/pokemon-showdown](https://github.com/smogon/pokemon-showdown).
-- **No manual switching** — battles are a 1v1 ladder until one team is wiped. The **lead** is slot 0 in team order. After a faint, the next Pokémon is the next unfainted slot in list order (wrapping to the start), not a free switch by type.
+- **No manual switching** — battles are a 1v1 ladder until one team is wiped. The **lead** is slot 0 in team order. After a faint, the next Pokémon is the next unfainted slot in list order (wrapping to the start). 
 - **Moves** are chosen by a **deterministic heuristic**, not by a full human or Showdown AI.
 - **Data scope** is whatever is in the JSON files (Gen 1–oriented species and moves in this repo).
 - **Mutation** only reorders species already in the team; it does not introduce new species into the genome. A different operator could add or replace alleles if you want search beyond permutations.
