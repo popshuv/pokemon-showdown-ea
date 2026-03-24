@@ -1,9 +1,8 @@
 # Pokémon Showdown EA — Gen 1 Team Optimizer
 
-A small Python experiment that searches for **strong orderings of six Pokémon species** in a **Generation 1** context. It uses **competitive coevolution**: two populations (**Red**, the team you care about, and **Blue**, an internal adversary) both evolve under the same **(μ + λ)** rules. Each candidate is scored with a **built-in battle simulator** and a **heuristic move picker** driven by JSON data (species, moves, types, stats).
+An evolutionary algorithm (EA) experiment for **strong orderings of six **Generation 1** Pokémon species**. It uses **competitive coevolution**: two populations (**Red**, the main team and **Blue**, its adversary) both evolve under the same **(μ + λ)** rules. Each candidate is scored with a **built-in battle simulator** and a **heuristic move picker** driven by JSON data (species, moves, types, stats).
 
-This project is **inspired by** competitive team-building and [Pokémon Showdown](https://github.com/smogon/pokemon-showdown) ideas, but the battle code here is **not** the official Showdown engine — it is a **simplified** Gen 1–style model (see [Limitations](#limitations)).
-
+This project implements a simplified battle simulation for [Pokémon Showdown](https://github.com/smogon/pokemon-showdown).
 ---
 
 ## What the EA Optimizes
@@ -58,8 +57,8 @@ Game data is loaded from `data/` at the **repository root** (paths are resolved 
 
 ## Requirements
 
-- **Python 3.10+** (uses modern type hints such as `str | None`)
-- **Standard library only** (`json`, `math`, `copy`, `random`, `pathlib`) — no `pip install` needed for a basic run
+- **Python 3.10+**
+- **Libraries:** (`json`, `math`, `copy`, `random`, `pathlib`)
 
 ---
 
