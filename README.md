@@ -95,7 +95,7 @@ Adjust `run_coevolution` in code or call it from your own script — see `run_co
 | `tournament_size` | Parent selection pressure |
 | `mutation_prob` | Probability each child is mutated after crossover |
 | `n_opponents` | Opponent genomes sampled per fitness evaluation |
-| `n_battles` | Repeats per opponent matchup (reduces Random Number Generator variance) |
+| `n_battles` | Repeats per opponent matchup (reduces variance) |
 | `verbose` | Print progress to stdout |
 
 ---
