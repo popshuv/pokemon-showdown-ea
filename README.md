@@ -107,3 +107,4 @@ Adjust `run_coevolution` in code or call it from your own script — see `run_co
 - **No manual switching** — battles are a 1v1 ladder until one team is wiped. The **lead** is slot 0 in team order. After a faint, the next Pokémon is the next unfainted slot in list order (wrapping to the start), not a free switch by type.
 - **Moves** are chosen by a **deterministic heuristic**, not by a full human or Showdown AI.
 - **Data scope** is whatever is in the JSON files (Gen 1–oriented species and moves in this repo).
+- **Mutation** only interacts with the configuration of the team, and does not introduce new alleles into the genotype. Could/should be changed to another mutation operator
