@@ -8,7 +8,7 @@ This project implements a simplified battle simulation for [Pokémon Showdown](h
 ## What the EA Optimizes
 
 - **Genotype:** A **permutation of 6 species IDs** (no duplicates), drawn from the species available in `data/species/data.json`.
-- **Phenotype:** For each genome, the code builds six Pokémon with **four moves each** (`select_moves`), using types and learnsets from JSON. Move choice depends on the **opponent's** six species, so fitness reflects matchups rather than a fixed moveset per species alone.
+- **Phenotype:** For each genome, the code builds six Pokémon with **four moves each** (`select_moves`).
 - **Fitness (coevolution):** When scoring **Red**, battles are sampled against genomes from the **current Blue population** (and vice versa). Each matchup is repeated **`n_battles`** times.
 
   > **Fitness = win rate + average remaining HP ratio** (range roughly **[0, 2]**; higher is better)
