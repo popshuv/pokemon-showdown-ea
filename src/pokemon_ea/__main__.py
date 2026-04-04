@@ -1,4 +1,8 @@
-"""Run the EA demo when executing ``python -m pokemon_ea`` (from ``src``)."""
+"""Run the EA demo when executing ``python -m pokemon_ea`` (from ``src``).
+
+Hyperparameters are the defaults on ``run_coevolution`` in ``ea``; override them
+there for the CLI demo, or pass keyword arguments when calling from code.
+"""
 
 import random
 import sys
@@ -16,16 +20,7 @@ else:
 
 def main() -> None:
     random.seed(24)
-    best_genome, best_fitness, history = run_coevolution(
-        pop_size=30,
-        n_offspring=20,
-        n_generations=30,
-        tournament_size=3,
-        mutation_prob=0.75,
-        n_opponents=8,
-        n_battles=3,
-    )
-
+    best_genome, best_fitness, history = run_coevolution()
     print_run_footer(best_genome, best_fitness, history)
 
 

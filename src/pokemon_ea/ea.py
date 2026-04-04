@@ -109,12 +109,12 @@ def tournament_select(population: list, fitnesses: list[float], k: int = 3) -> l
 # ──────────────────────────────────────────────────────────────
 
 def run_coevolution(
-    pop_size:        int   = 20,
+    pop_size:        int   = 30,
     n_offspring:     int   = 20,
     n_generations:   int   = 30,
     tournament_size: int   = 3,
-    mutation_prob:   float = 0.5,
-    n_opponents:     int   = 10,
+    mutation_prob:   float = 0.75,
+    n_opponents:     int   = 8,
     n_battles:       int   = 3,
     verbose:         bool  = True,
 ) -> tuple[list[str], float, dict]:

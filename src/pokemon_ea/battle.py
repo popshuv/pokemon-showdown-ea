@@ -349,26 +349,13 @@ def _switch_sort_key(p: dict, opp: dict) -> tuple[int, int]:
     return (type_score, _stat_total(p))
 
 
-def choose_switch_in(team: list[dict], current_i: int, _opp: dict | None) -> int | None:
+def choose_switch_in(team: list[dict], opp: dict | None) -> int | None:
     cand = [j for j in range(len(team)) if not team[j]["fainted"]]
     if not cand:
         return None
-    # Former behaviour: send in the unfainted Pokémon with the best type / stat-total
-    # matchup against the active opponent (`_switch_sort_key`).
-    # if _opp is not None:
-    #     return max(cand, key=lambda j: _switch_sort_key(team[j], _opp))
-    # return max(cand, key=lambda j: (0, _stat_total(team[j])))
-    return _next_unfainted_from_index(team, current_i)
-
-
-def _next_unfainted_from_index(team: list[dict], current_i: int) -> int | None:
-    for j in range(current_i + 1, len(team)):
-        if not team[j]["fainted"]:
-            return j
-    for j in range(0, current_i + 1):
-        if not team[j]["fainted"]:
-            return j
-    return None
+    if opp is not None:
+        return max(cand, key=lambda j: _switch_sort_key(team[j], opp))
+    return max(cand, key=lambda j: (0, _stat_total(team[j])))
 
 
 def simulate_battle(team1: list[dict], team2: list[dict]) -> tuple[bool, float]:
@@ -380,14 +367,14 @@ def simulate_battle(team1: list[dict], team2: list[dict]) -> tuple[bool, float]:
 
     for _ in range(MAX_TURNS):
         if i1 < len(t1) and t1[i1]["fainted"]:
-            opp_for_switch = t2[i2] if i2 < len(t2) else None
-            n = choose_switch_in(t1, i1, opp_for_switch)
+            opp_for_switch = _opp_reference_for_switch(t2, i2)
+            n = choose_switch_in(t1, opp_for_switch)
             if n is None:
                 break
             i1 = n
         if i2 < len(t2) and t2[i2]["fainted"]:
-            opp_for_switch = t1[i1] if i1 < len(t1) else None
-            n = choose_switch_in(t2, i2, opp_for_switch)
+            opp_for_switch = _opp_reference_for_switch(t1, i1)
+            n = choose_switch_in(t2, opp_for_switch)
             if n is None:
                 break
             i2 = n
