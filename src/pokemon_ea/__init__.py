@@ -1,8 +1,8 @@
 """
 Pokemon Gen-1 Team Optimizer — Evolutionary Algorithm.
 
-Public API is re-exported here for ``from pokemon_ea import run_ea`` when ``src``
-is on ``PYTHONPATH`` (e.g. ``python -m pokemon_ea`` from the ``src`` directory).
+Public API is re-exported here for ``from pokemon_ea import run_coevolution`` when
+``src`` is on ``PYTHONPATH`` (e.g. ``python -m pokemon_ea`` from the ``src`` directory).
 """
 
 from .battle import calc_damage, pick_move, simulate_battle, use_move
@@ -25,8 +25,8 @@ from .ea import (
     crossfill,
     evaluate_fitness,
     genome_to_team,
-    mutate_swap,
-    run_ea,
+    mutate_scramble,
+    run_coevolution,
     tournament_select,
 )
 from .effectiveness import sum_exponents, type_multiplier
@@ -53,11 +53,11 @@ __all__ = [
     "genome_to_team",
     "move_categories",
     "move_types",
-    "mutate_swap",
+    "mutate_scramble",
     "pick_move",
     "print_history",
     "print_team",
-    "run_ea",
+    "run_coevolution",
     "select_moves",
     "simulate_battle",
     "species_base_hp",

@@ -1,40 +1,39 @@
 # Pokémon Showdown EA — Gen 1 Team Optimizer
 
-A small Python experiment that searches for **strong orderings of six Pokémon species** in a **Generation 1** context. It uses an **evolutionary algorithm** (EA) to evolve permutations of a team; each candidate is scored with a **built-in battle simulator** and a **heuristic move picker** driven by JSON data (species, moves, types, stats).
+A small Python experiment that searches for **strong orderings of six Pokémon species** in a **Generation 1** context. It uses **competitive coevolution**: two populations (**Red**, the team you care about, and **Blue**, an internal adversary) both evolve under the same **(μ + λ)** rules. Each candidate is scored with a **built-in battle simulator** and a **heuristic move picker** driven by JSON data (species, moves, types, stats).
 
-This project is **inspired by** competitive team-building and [Pokémon Showdown](https://github.com/smogon/pokemon-showdown) ideas, but the battle code here is **not** the official Showdown engine—it is a **simplified** Gen 1–style model (see [Limitations](#limitations)).
+This project is **inspired by** competitive team-building and [Pokémon Showdown](https://github.com/smogon/pokemon-showdown) ideas, but the battle code here is **not** the official Showdown engine — it is a **simplified** Gen 1–style model (see [Limitations](#limitations)).
 
 ---
 
-## What the EA optimizes
+## What the EA Optimizes
 
 - **Genotype:** A **permutation of 6 species IDs** (no duplicates), drawn from the species available in `data/species/data.json`.
-- **Phenotype:** For each genome, the code builds six Pokémon with **four moves each** (`select_moves`), using types and learnsets from JSON. Move choice depends on the **opponent’s** six species so fitness reflects matchups, not a fixed moveset per species alone.
-- **Fitness:** For each evaluation, the team fights several **random opponent teams**.  
-  **Fitness = win rate + average remaining HP ratio** on your side (roughly in **[0, 2]**; higher is better). Stochastic battles are repeated to reduce noise from accuracy and damage rolls.
+- **Phenotype:** For each genome, the code builds six Pokémon with **four moves each** (`select_moves`), using types and learnsets from JSON. Move choice depends on the **opponent's** six species, so fitness reflects matchups rather than a fixed moveset per species alone.
+- **Fitness (coevolution):** When scoring **Red**, battles are sampled against genomes from the **current Blue population** (and vice versa). Each matchup is repeated **`n_battles`** times.
 
-So the EA is mainly searching **which six species** and **in which lead / order** they perform best under this simulator—not full Showdown sets (items, precise EV spreads, switches, etc.).
+  > **Fitness = win rate + average remaining HP ratio** (range roughly **[0, 2]**; higher is better)
+
+The EA searches **which six species** and **in which lead/order** perform best **against an adapting opponent**, not against a fixed random pool.
 
 ---
 
-## Evolutionary algorithm concepts
+## Evolutionary Algorithm Concepts
 
-Evolutionary algorithms maintain a **population** of candidate solutions and improve them over **generations** using **selection**, **recombination (crossover)**, and **mutation**, guided by a **fitness** function.
-
-| Concept | Typical meaning | In this project |
-|--------|-------------------|-----------------|
+| Concept | Typical Meaning | In This Project |
+|---|---|---|
 | **Individual** | One candidate solution | One 6-species ordering (genome) |
-| **Fitness** | How good a solution is | Win rate + mean HP ratio vs random opponents |
+| **Fitness** | How good a solution is | Win rate + mean HP ratio vs. opponents sampled from the other population |
 | **Selection** | Choose parents for breeding | **Tournament selection** (pick best of *k* random individuals) |
-| **Crossover** | Combine two parents into children | **Cut-and-crossfill** (`crossfill`): keeps order, fills the rest from the other parent without duplicates |
-| **Mutation** | Small random change | **Swap** two positions in the team (`mutate_swap`) |
-| **Survival** | Who goes to the next generation | **(μ + λ)** style: merge parents + offspring, sort by fitness, keep the top **μ** (`pop_size`) |
+| **Crossover** | Combine two parents into children | **Cut-and-crossfill** (`crossfill`): order-preserving; fills the rest from the other parent without duplicates |
+| **Mutation** | Small random change | **Shuffle a random contiguous subsequence** of the team (`mutate_scramble`) |
+| **Survival** | Who goes to the next generation | **(μ + λ)** per side: merge parents + offspring, sort by fitness, keep the top **μ** (`pop_size`) |
 
-Default strategy: produce **λ** children per generation from tournament-selected parents, optionally mutate each child, evaluate fitness, then **truncate** the combined pool to the best μ genomes.
+Each generation, **λ** children are produced **per population** from tournament-selected parents; each child may be mutated with probability **`mutation_prob`**. The run returns the **best Red** genome and fitness; Blue is used only as selection pressure.
 
 ---
 
-## Repository layout
+## Repository Layout
 
 ```
 pokemon-showdown-ea/
@@ -64,46 +63,48 @@ Game data is loaded from `data/` at the **repository root** (paths are resolved 
 
 ---
 
-## How to run
+## How to Run
 
-From the **`src`** directory (so Python can import the `pokemon_ea` package):
+From the **`src`** directory (so Python can import `pokemon_ea`):
 
 ```bash
 cd src
 python -m pokemon_ea
 ```
 
-This runs the demo in `pokemon_ea/__main__.py`: fixed RNG seed, then `run_ea(...)` with the parameters set there, and prints the best team plus a simple fitness history chart.
+Alternatively, from the **repository root**, set `PYTHONPATH` to `src` (e.g. PowerShell `$env:PYTHONPATH="src"` or Unix `export PYTHONPATH=src`) and run `python -m pokemon_ea`.
 
-Alternatively, from the **repository root**, put `src` on `PYTHONPATH` (e.g. `set PYTHONPATH=src` on Windows CMD, or `$env:PYTHONPATH="src"` in PowerShell) and run `python -m pokemon_ea`.
+The demo uses `random.seed(...)` and the parameters in `pokemon_ea/__main__.py`, then prints the summary from `pokemon_ea/report.py` (`print_run_footer`).
 
-### Use as a module
+### Use as a Module
 
-With `src` on the module search path (e.g. `cd src`):
+With `src` on the module search path (e.g. after `cd src`):
 
 ```bash
-python -c "import pokemon_ea as pe; print(pe.run_ea(pop_size=10, n_generations=5, verbose=False))"
+python -c "import pokemon_ea as pe; print(pe.run_coevolution(pop_size=10, n_generations=5, verbose=False))"
 ```
 
-Adjust `run_ea` arguments in code or call it from your own script; see `run_ea` in `src/pokemon_ea/ea.py` for parameters.
+Adjust `run_coevolution` in code or call it from your own script — see `run_coevolution` in `src/pokemon_ea/ea.py` for all parameters.
 
-### Main tuning knobs (`run_ea`)
+### Main Tuning Knobs (`run_coevolution`)
 
 | Parameter | Role |
-|-----------|------|
-| `pop_size` (μ) | Survivors each generation |
-| `n_offspring` (λ) | Children generated per generation |
+|---|---|
+| `pop_size` (μ) | Survivors each generation **per population** |
+| `n_offspring` (λ) | Children produced **per population** each generation |
 | `n_generations` | How long the EA runs |
 | `tournament_size` | Parent selection pressure |
-| `mutation_prob` | Chance each child gets a swap mutation |
-| `n_opponents` | Random opponent teams per fitness evaluation |
-| `n_battles_per_opp` | Repeats per opponent (reduces RNG variance) |
+| `mutation_prob` | Probability each child is mutated after crossover |
+| `n_opponents` | Opponent genomes sampled per fitness evaluation |
+| `n_battles` | Repeats per opponent matchup (reduces RNG variance) |
+| `verbose` | Print progress to stdout |
 
 ---
 
 ## Limitations
 
 - **Not the Showdown server** — mechanics are approximated (status, damage, priority, etc.). Do not expect bit-for-bit parity with [smogon/pokemon-showdown](https://github.com/smogon/pokemon-showdown).
-- **No manual switching** — battles are a **1v1 ladder** until one team is wiped. The **opening** lead is still slot 1 in team order; **after a faint**, the next Pokémon is chosen by **type matchup** (then total stats), not fixed list order.
+- **No manual switching** — battles are a 1v1 ladder until one team is wiped. The **lead** is slot 0 in team order. After a faint, the replacement is chosen by **type chart heuristics and total stats** against the opponent’s active Pokémon (`choose_switch_in` / `_switch_sort_key`), not fixed list order.
 - **Moves** are chosen by a **deterministic heuristic**, not by a full human or Showdown AI.
 - **Data scope** is whatever is in the JSON files (Gen 1–oriented species and moves in this repo).
+- **Mutation** only reorders species already in the team; it does not introduce new species into the genome. A different operator could add or replace alleles if you want search beyond permutations.
