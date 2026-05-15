@@ -25,10 +25,12 @@ from .ea import (
     crossfill,
     evaluate_fitness,
     genome_to_team,
-    mutate_scramble,
+    mutate_swap,
+    mutate_swap_slots,
     run_coevolution,
     tournament_select,
 )
+from .hof import HallOfFame
 from .effectiveness import sum_exponents, type_multiplier
 from .move_selection import select_moves
 from .pokemon import build_pokemon, eff_spe
@@ -53,7 +55,9 @@ __all__ = [
     "genome_to_team",
     "move_categories",
     "move_types",
-    "mutate_scramble",
+    "HallOfFame",
+    "mutate_swap",
+    "mutate_swap_slots",
     "pick_move",
     "print_history",
     "print_team",

@@ -8,9 +8,9 @@ This project is **inspired by** competitive team-building and [Pokémon Showdown
 
 ## What the EA Optimizes
 
-- **Genotype:** A **permutation of 6 species IDs** (no duplicates), drawn from the species available in `data/species/data.json`.
+- **Genotype:** An **ordered list of 6 unique species IDs** (slot 0 = **lead**), drawn from `data/species/data.json`.
 - **Phenotype:** For each genome, the code builds six Pokémon with **four moves each** (`select_moves`), using types and learnsets from JSON. Move choice depends on the **opponent's** six species, so fitness reflects matchups rather than a fixed moveset per species alone.
-- **Fitness (coevolution):** When scoring **Red**, battles are sampled against genomes from the **current Blue population** (and vice versa). Each matchup is repeated **`n_battles`** times.
+- **Fitness (coevolution):** When scoring **Red**, battles are sampled against the **current Blue population plus Blue's hall of fame** (and symmetrically for Blue vs Red + Red HOF). Each matchup is repeated **`n_battles`** times.
 
   > **Fitness = win rate + average remaining HP ratio** (range roughly **[0, 2]**; higher is better)
 
@@ -26,7 +26,8 @@ The EA searches **which six species** and **in which lead/order** perform best *
 | **Fitness** | How good a solution is | Win rate + mean HP ratio vs. opponents sampled from the other population |
 | **Selection** | Choose parents for breeding | **Tournament selection** (pick best of *k* random individuals) |
 | **Crossover** | Combine two parents into children | **Cut-and-crossfill** (`crossfill`): order-preserving; fills the rest from the other parent without duplicates |
-| **Mutation** | Small random change | **Shuffle a random contiguous subsequence** of the team (`mutate_scramble`) |
+| **Mutation** | Small random change | **`mutate_swap`** (replace one species) and **`mutate_swap_slots`** (swap two slots / lead), each with probability `mutation_prob` (default **0.3**) |
+| **Memory** | Remember strong past opponents | **`HallOfFame`** per color — round-best genomes are archived and included in opponent sampling (`hof_size`, default **12**) |
 | **Survival** | Who goes to the next generation | **(μ + λ)** per side: merge parents + offspring, sort by fitness, keep the top **μ** (`pop_size`) |
 
 Each generation, **λ** children are produced **per population** from tournament-selected parents; each child may be mutated with probability **`mutation_prob`**. The run returns the **best Red** genome and fitness; Blue is used only as selection pressure.
@@ -94,8 +95,9 @@ Adjust `run_coevolution` in code or call it from your own script — see `run_co
 | `n_offspring` (λ) | Children produced **per population** each generation |
 | `n_generations` | How long the EA runs |
 | `tournament_size` | Parent selection pressure |
-| `mutation_prob` | Probability each child is mutated after crossover |
-| `n_opponents` | Opponent genomes sampled per fitness evaluation |
+| `mutation_prob` | Per-operator probability for species swap and slot swap (default **0.3**) |
+| `hof_size` | Max archived genomes per color in the hall of fame |
+| `n_opponents` | Opponent genomes sampled per fitness evaluation (from live pop + HOF) |
 | `n_battles` | Repeats per opponent matchup (reduces RNG variance) |
 | `verbose` | Print progress to stdout |
 
@@ -107,4 +109,4 @@ Adjust `run_coevolution` in code or call it from your own script — see `run_co
 - **No manual switching** — battles are a 1v1 ladder until one team is wiped. The **lead** is slot 0 in team order. After a faint, the replacement is chosen by **type chart heuristics and total stats** against the opponent’s active Pokémon (`choose_switch_in` / `_switch_sort_key`), not fixed list order.
 - **Moves** are chosen by a **deterministic heuristic**, not by a full human or Showdown AI.
 - **Data scope** is whatever is in the JSON files (Gen 1–oriented species and moves in this repo).
-- **Mutation** only reorders species already in the team; it does not introduce new species into the genome. A different operator could add or replace alleles if you want search beyond permutations.
+- **`mutate_swap`** can introduce species not present in either parent; **`mutate_swap_slots`** only reorders. See [`BRANCH_CONTEXT.md`](BRANCH_CONTEXT.md) for branch/merge-base notes for agents.

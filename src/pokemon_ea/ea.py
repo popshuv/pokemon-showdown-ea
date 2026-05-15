@@ -3,6 +3,7 @@
 import random
 
 from . import battle, data, move_selection, pokemon
+from .hof import HallOfFame
 
 
 def genome_to_team(genome: list[str], opp_genome: list[str]) -> list[dict]:
@@ -54,23 +55,27 @@ def coeval_fitness(
 # EVOLUTIONARY OPERATORS
 # ──────────────────────────────────────────────────────────────
 
-def mutate_scramble(genome: list[str]) -> list[str]:
+def mutate_swap(genome: list[str]) -> list[str]:
     """
-    Mutation: randomly shuffle a subsequence of the genome. To perserve
-    permutation validity. 
+    Mutation: replace one random team slot with a species not already on the team.
     """
     g = genome.copy()
+    i = random.randrange(len(g))
+    in_team = set(g)
+    pool = [s for s in data.ALL_SPECIES if s not in in_team]
+    if not pool:
+        return g
+    g[i] = random.choice(pool)
+    return g
 
-    # Pick two indices
-    i, j = sorted(random.sample(range(len(g)), 2))
 
-    # Extract and shuffle the subsequence
-    subset = g[i: j + 1]
-    random.shuffle(subset)
-
-    # Place it back 
-    g[i: j + 1] = subset
-    
+def mutate_swap_slots(genome: list[str]) -> list[str]:
+    """
+    Mutation: swap two slots (changes lead when index 0 is involved).
+    """
+    g = genome.copy()
+    i, j = random.sample(range(len(g)), 2)
+    g[i], g[j] = g[j], g[i]
     return g
 
 
@@ -113,7 +118,8 @@ def run_coevolution(
     n_offspring:     int   = 20,
     n_generations:   int   = 30,
     tournament_size: int   = 3,
-    mutation_prob:   float = 0.75,
+    mutation_prob:   float = 0.3,
+    hof_size:        int   = 12,
     n_opponents:     int   = 8,
     n_battles:       int   = 3,
     verbose:         bool  = True,
@@ -129,8 +135,9 @@ def run_coevolution(
     Each generation:
       1. Evolve offspring for both populations (parents chosen by tournament).
       2. Evaluate every µ+λ candidate (parents ∪ offspring) against the *current*
-         adversary population on the other side.
+         adversary population **plus** that side's hall of fame on the other color.
       3. Truncate to µ survivors per side (highest fresh fitness).
+      4. Insert each side's round-best genome into its hall of fame.
 
     Parameters
     ----------
@@ -138,7 +145,8 @@ def run_coevolution(
     n_offspring     : λ — children produced per population each generation
     n_generations   : number of generations
     tournament_size : k for tournament parent selection
-    mutation_prob   : probability a child is mutated after recombination
+    mutation_prob   : per-operator probability (species swap and slot swap each)
+    hof_size        : max archived genomes per color (opponent memory)
     n_opponents     : number of random opponent teams per fitness eval
     n_battles       : battle repetitions per matchup (averages out RNG)
 
@@ -158,20 +166,24 @@ def run_coevolution(
     _print(f"{'='*60}")
     _print(f"  µ={pop_size}  λ={n_offspring}  rounds={n_generations}")
     _print(f"  tournament_k={tournament_size}  mutation_p={mutation_prob}")
-    _print(f"  opponents/eval={n_opponents} battles/opponent={n_battles}")
+    _print(f"  hof_size={hof_size}  opponents/eval={n_opponents} battles/opponent={n_battles}")
     _print(f"{'='*60}\n")
 
     # ── Initialise both populations ───────────────────────────
     red  = [random.sample(data.ALL_SPECIES, 6) for _ in range(pop_size)]
     blue = [random.sample(data.ALL_SPECIES, 6) for _ in range(pop_size)]
 
+    red_hof  = HallOfFame(hof_size)
+    blue_hof = HallOfFame(hof_size)
+
     # ── Fitness helpers ───────────────────────────────────────
     def _eval_red(red_pop, blue_live):
-        return [coeval_fitness(g, blue_live, n_opponents, n_battles) for g in red_pop]
+        pool = blue_hof.extend_pool(blue_live)
+        return [coeval_fitness(g, pool, n_opponents, n_battles) for g in red_pop]
 
     def _eval_blue(blue_pop, red_live):
-        # Blue is scored from its own perspective: it "wins" when Red loses
-        return [coeval_fitness(g, red_live, n_opponents, n_battles) for g in blue_pop]
+        pool = red_hof.extend_pool(red_live)
+        return [coeval_fitness(g, pool, n_opponents, n_battles) for g in blue_pop]
 
     def _offspring(pop, fits):
         children = []
@@ -180,9 +192,13 @@ def run_coevolution(
             p2 = tournament_select(pop, fits, tournament_size)
             c1, c2 = crossfill(p1, p2)
             if random.random() < mutation_prob:
-                c1 = mutate_scramble(c1)
+                c1 = mutate_swap(c1)
             if random.random() < mutation_prob:
-                c2 = mutate_scramble(c2)
+                c1 = mutate_swap_slots(c1)
+            if random.random() < mutation_prob:
+                c2 = mutate_swap(c2)
+            if random.random() < mutation_prob:
+                c2 = mutate_swap_slots(c2)
             children.append(c1)
             if len(children) < n_offspring:
                 children.append(c2)
@@ -197,6 +213,9 @@ def run_coevolution(
     _print("Evaluating initial populations …")
     red_fits  = _eval_red(red, blue)
     blue_fits = _eval_blue(blue, red)
+
+    red_hof.add(red[red_fits.index(max(red_fits))], max(red_fits))
+    blue_hof.add(blue[blue_fits.index(max(blue_fits))], max(blue_fits))
 
     best_genome  = red[red_fits.index(max(red_fits))]
     best_fitness = max(red_fits)
@@ -219,6 +238,9 @@ def run_coevolution(
 
         red,  red_fits  = _mu_lambda_select(red_all, red_all_fits)
         blue, blue_fits = _mu_lambda_select(blue_all, blue_all_fits)
+
+        red_hof.add(red[0], red_fits[0])
+        blue_hof.add(blue[0], blue_fits[0])
 
         # Track best Red genome across all generations
         if red_fits[0] > best_fitness:
